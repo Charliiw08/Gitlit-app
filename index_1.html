@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>GitLit - Nightlife Discovery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0a0a0a; --bg-secondary: #111111; --bg-card: #1a1a1a; --bg-card-hover: #222222;
+      --accent-primary: #ff6b35; --accent-secondary: #ff8c5a; --accent-gradient: linear-gradient(135deg, #ff6b35, #ff8c5a);
+      --text-primary: #ffffff; --text-secondary: #a0a0a0; --text-muted: #666666;
+      --border-color: #2a2a2a; --success: #00d26a; --warning: #ffbe0b; --danger: #ff5252;
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.5); --transition-fast: 0.15s ease; --transition-normal: 0.25s ease;
+      --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+    body { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    .app-container { display: flex; flex-direction: column; height: 100%; max-width: 480px; margin: 0 auto; background: var(--bg-primary); box-shadow: 0 0 60px rgba(255,107,53,0.1); }
+    .screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .screen-content { padding: 16px; padding-bottom: 100px; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-primary); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
+    .header-logo { font-size: 24px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .header-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-card); border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: var(--transition-fast); position: relative; }
+    .header-btn:hover { background: var(--bg-card-hover); }
+    .header-btn .badge { position: absolute; top: -2px; right: -2px; background: var(--accent-primary); color: white; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; min-width: 18px; }
+    .nav-bar { display: flex; justify-content: space-around; align-items: center; padding: 8px 0; background: var(--bg-secondary); border-top: 1px solid var(--border-color); position: sticky; bottom: 0; padding-bottom: calc(8px + var(--safe-bottom)); z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); border-radius: var(--radius-md); }
+    .nav-item.active { color: var(--accent-primary); }
+    .nav-item:hover { background: var(--bg-card); }
+    .nav-icon { font-size: 20px; }
+    .nav-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: var(--radius-md); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: var(--transition-fast); border: none; text-decoration: none; }
+    .btn-primary { background: var(--accent-gradient); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4); }
+    .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: var(--bg-card-hover); }
+    .btn-ghost { background: transparent; color: var(--text-secondary); }
+    .btn-sm { padding: 8px 16px; font-size: 12px; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input { width: 100%; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: inherit; font-size: 16px; transition: var(--transition-fast); }
+    .form-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2); }
+    .form-input::placeholder { color: var(--text-muted); }
+    .venue-card { background: var(--bg-card); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: var(--transition-normal); margin-bottom: 16px; }
+    .venue-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .venue-image-container { position: relative; aspect-ratio: 16/10; }
+    .venue-image { width: 100%; height: 100%; object-fit: cover; }
+    .venue-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; }
+    .venue-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-featured { background: var(--accent-gradient); color: white; }
+    .badge-free { background: #00d26a; color: white; }
+    .venue-litness { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .litness-fire { color: #ff6b35; }
+    .litness-hot { color: #ffbe0b; }
+    .venue-info { padding: 16px; }
+    .venue-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .venue-name { font-size: 18px; font-weight: 600; }
+    .venue-cover { padding: 6px 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; }
+    .venue-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary); }
+    .venue-meta-item { display: flex; align-items: center; gap: 4px; }
+    .venue-genres { display: flex; gap: 6px; flex-wrap: wrap; }
+    .genre-tag { padding: 4px 10px; background: var(--bg-secondary); border-radius: 20px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
+    .venue-live-bar { margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; }
+    .live-indicator { display: flex; align-items: center; gap: 8px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .crowd-meter { display: flex; align-items: center; gap: 8px; }
+    .crowd-bar { width: 60px; height: 6px; background: var(--bg-card); border-radius: 3px; overflow: hidden; }
+    .crowd-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .crowd-low { background: var(--success); }
+    .crowd-moderate { background: var(--warning); }
+    .crowd-busy { background: var(--accent-primary); }
+    .crowd-packed { background: var(--danger); }
+    .event-card { background: var(--bg-card); border-radius: var(--radius-lg); overflow: hidden; display: flex; gap: 12px; padding: 12px; cursor: pointer; transition: var(--transition-normal); margin-bottom: 12px; }
+    .event-card:hover { background: var(--bg-card-hover); }
+    .event-date-box { width: 50px; text-align: center; padding: 8px; background: var(--bg-secondary); border-radius: var(--radius-md); flex-shrink: 0; }
+    .event-date-day { font-size: 20px; font-weight: 700; color: var(--accent-primary); }
+    .event-date-month { font-size: 10px; font-weight: 500; text-transform: uppercase; color: var(--text-secondary); }
+    .event-details { flex: 1; min-width: 0; }
+    .event-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .event-venue { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+    .event-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); }
+    .event-price { color: var(--success); font-weight: 600; }
+    .vibe-post { background: var(--bg-card); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+    .vibe-header { display: flex; gap: 12px; margin-bottom: 12px; }
+    .vibe-user-info { flex: 1; }
+    .vibe-username { font-weight: 600; font-size: 14px; }
+    .vibe-location { font-size: 12px; color: var(--accent-primary); }
+    .vibe-time { font-size: 12px; color: var(--text-muted); }
+    .vibe-content { font-size: 15px; margin-bottom: 12px; line-height: 1.6; }
+    .vibe-actions { display: flex; gap: 24px; }
+    .vibe-action { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 14px; padding: 8px; border-radius: var(--radius-sm); transition: var(--transition-fast); }
+    .vibe-action:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .vibe-action.active { color: var(--accent-primary); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; overflow: hidden; flex-shrink: 0; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .search-container { position: relative; margin-bottom: 16px; }
+    .search-input { width: 100%; padding: 14px 16px 14px 44px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); color: var(--text-primary); font-family: inherit; font-size: 16px; }
+    .search-input:focus { outline: none; border-color: var(--accent-primary); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-chip { flex-shrink: 0; padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition-fast); white-space: nowrap; }
+    .filter-chip:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+    .filter-chip.active { background: var(--accent-gradient); border-color: transparent; color: white; }
+    .mood-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .mood-card { padding: 20px; background: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--radius-lg); cursor: pointer; transition: var(--transition-normal); text-align: center; }
+    .mood-card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .mood-card.selected { border-color: var(--accent-primary); background: rgba(255, 107, 53, 0.1); }
+    .mood-emoji { font-size: 32px; margin-bottom: 8px; }
+    .mood-label { font-size: 14px; font-weight: 600; }
+    .mood-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .section { margin-bottom: 24px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { font-size: 18px; font-weight: 600; }
+    .section-link { font-size: 13px; color: var(--accent-primary); cursor: pointer; }
+    .profile-header { text-align: center; padding: 24px; background: var(--bg-card); border-radius: var(--radius-lg); margin-bottom: 16px; }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 12px; }
+    .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .profile-handle { color: var(--text-secondary); font-size: 14px; }
+    .profile-stats { display: flex; justify-content: center; gap: 32px; margin-top: 16px; }
+    .profile-stat { text-align: center; }
+    .profile-stat-value { font-size: 20px; font-weight: 700; }
+    .profile-stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; }
+    .profile-badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+    .profile-badge { padding: 6px 12px; background: var(--bg-secondary); border-radius: 20px; font-size: 12px; }
+    .auth-screen { min-height: 100%; display: flex; flex-direction: column; padding: 24px; justify-content: center; }
+    .auth-logo { font-size: 48px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; text-align: center; }
+    .auth-tagline { color: var(--text-secondary); margin-bottom: 32px; text-align: center; font-size: 16px; }
+    .auth-form { max-width: 100%; }
+    .auth-footer { text-align: center; margin-top: 24px; color: var(--text-secondary); font-size: 14px; }
+    .auth-link { color: var(--accent-primary); cursor: pointer; font-weight: 600; }
+    .toast-container { position: fixed; top: 16px; left: 16px; right: 16px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: 448px; margin: 0 auto; }
+    .toast { padding: 14px 16px; background: var(--bg-card); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; pointer-events: auto; }
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } }
+    .toast-success { border-left: 4px solid var(--success); }
+    .toast-error { border-left: 4px solid var(--danger); }
+    .toast-info { border-left: 4px solid var(--accent-primary); }
+    .detail-header { height: 220px; position: relative; }
+    .detail-header-bg { width: 100%; height: 100%; object-fit: cover; }
+    .detail-back { position: absolute; top: 16px; left: 16px; width: 40px; height: 40px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .detail-content { margin-top: -30px; position: relative; z-index: 10; }
+    .detail-card { background: var(--bg-card); border-radius: var(--radius-xl); padding: 20px; margin: 0 16px 16px; }
+    .detail-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .detail-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+    .litness-display { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 16px; text-align: center; margin-bottom: 16px; }
+    .litness-score { font-size: 48px; font-weight: 700; color: var(--accent-primary); }
+    .litness-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .checkin-btn { width: 100%; padding: 16px; font-size: 16px; }
+    .checkin-btn.checked-in { background: var(--bg-secondary); border: 2px solid var(--success); color: var(--success); }
+    .comments-section { padding: 0 16px 100px; }
+    .comments-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .comment-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .comment-input-row input { flex: 1; }
+    .comment { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+    .comment:last-child { border-bottom: none; }
+    .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+    .comment-body { flex: 1; }
+    .comment-author { font-weight: 600; font-size: 14px; }
+    .comment-time { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+    .comment-text { font-size: 14px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+    .comment-verified { color: var(--success); font-size: 11px; margin-left: 8px; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .gap-3 { gap: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mt-4 { margin-top: 16px; }
+    .location-banner { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+    .location-banner.error { border-color: var(--warning); background: rgba(255, 190, 11, 0.1); }
+    .location-btn { padding: 8px 16px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const API_URL = '/v1';
+    const storage = {
+      get: (key) => { try { return JSON.parse(localStorage.getItem('gitlit_' + key)); } catch { return null; } },
+      set: (key, val) => { localStorage.setItem('gitlit_' + key, JSON.stringify(val)); },
+      remove: (key) => { localStorage.removeItem('gitlit_' + key); }
+    };
+
+    // Location Context
+    const LocationContext = React.createContext(null);
+    
+    function LocationProvider({ children }) {
+      const [location, setLocation] = React.useState(storage.get('location') || null);
+      const [loading, setLoading] = React.useState(false);
+      const [error, setError] = React.useState(null);
+
+      const requestLocation = React.useCallback(() => {
+        if (!navigator.geolocation) {
+          setError('Geolocation not supported');
+          return;
+        }
+        setLoading(true);
+        setError(null);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+            setLocation(loc);
+            storage.set('location', loc);
+            setLoading(false);
+          },
+          (err) => {
+            console.error('Location error:', err);
+            setError(err.code === 1 ? 'Location access denied' : 'Could not get location');
+            setLoading(false);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        );
+      }, []);
+
+      // Try to get location on mount
+      React.useEffect(() => {
+        if (!location) {
+          requestLocation();
+        }
+      }, []);
+
+      return (
+        <LocationContext.Provider value={{ location, loading, error, requestLocation }}>
+          {children}
+        </LocationContext.Provider>
+      );
+    }
+
+    const useLocation = () => React.useContext(LocationContext);
+
+    const api = {
+      token: storage.get('token'),
+      async request(endpoint, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...options.headers };
+        if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+        const res = await fetch(API_URL + endpoint, { ...options, headers, body: options.body ? JSON.stringify(options.body) : undefined });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || 'Request failed');
+        return data;
+      },
+      setToken(token) { this.token = token; storage.set('token', token); },
+      clearToken() { this.token = null; storage.remove('token'); },
+      async login(email, password) { const data = await this.request('/auth/login', { method: 'POST', body: { email, password } }); this.setToken(data.tokens.access_token); return data.user; },
+      async register(email, password, name, handle) { const data = await this.request('/auth/register', { method: 'POST', body: { email, password, name, handle } }); this.setToken(data.tokens.access_token); return data.user; },
+      async getMe() { return this.request('/users/me'); },
+      async getVenues(params = {}) { return this.request('/venues?' + new URLSearchParams(params)); },
+      async getVenue(id) { return this.request('/venues/' + id); },
+      async checkin(venueId) { return this.request('/venues/' + venueId + '/checkin', { method: 'POST' }); },
+      async checkout(venueId) { return this.request('/venues/' + venueId + '/checkin', { method: 'DELETE' }); },
+      async getComments(venueId) { return this.request('/venues/' + venueId + '/comments'); },
+      async postComment(venueId, content) { return this.request('/venues/' + venueId + '/comments', { method: 'POST', body: { content } }); },
+      async getEvents(params = {}) { return this.request('/events?' + new URLSearchParams(params)); },
+      async getFeed() { return this.request('/feed'); },
+      async createPost(content) { return this.request('/feed', { method: 'POST', body: { content } }); },
+      async reactToPost(postId) { return this.request('/feed/' + postId + '/react', { method: 'POST' }); },
+      async getReminders() { return this.request('/reminders'); },
+    };
+
+    const ToastContext = React.createContext(null);
+    function ToastProvider({ children }) {
+      const [toasts, setToasts] = React.useState([]);
+      const show = (message, type = 'info') => { const id = Date.now(); setToasts(prev => [...prev, { id, message, type }]); setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000); };
+      return (<ToastContext.Provider value={{ success: (m) => show(m, 'success'), error: (m) => show(m, 'error'), info: (m) => show(m, 'info') }}>{children}<div className="toast-container">{toasts.map(t => <div key={t.id} className={`toast toast-${t.type}`}>{t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'} {t.message}</div>)}</div></ToastContext.Provider>);
+    }
+    const useToast = () => React.useContext(ToastContext);
+
+    function Header({ onProfile }) { return (<header className="header"><div className="header-logo">GitLit</div><div className="header-actions"><button className="header-btn">🔔</button><button className="header-btn" onClick={onProfile}>👤</button></div></header>); }
+    
+    function NavBar({ activeTab, onTabChange }) {
+      const tabs = [{ id: 'discover', icon: '🔥', label: 'Discover' }, { id: 'events', icon: '📅', label: 'Events' }, { id: 'map', icon: '📍', label: 'Map' }, { id: 'vibes', icon: '💬', label: 'Vibes' }, { id: 'reminders', icon: '⏰', label: 'Remind' }];
+      return <nav className="nav-bar">{tabs.map(tab => <button key={tab.id} className={`nav-item ${activeTab === tab.id ? 'active' : ''}`} onClick={() => onTabChange(tab.id)}><span className="nav-icon">{tab.icon}</span><span className="nav-label">{tab.label}</span></button>)}</nav>;
+    }
+
+    function LocationBanner() {
+      const { location, loading, error, requestLocation } = useLocation();
+      
+      if (location && !error) return null;
+      
+      return (
+        <div className={`location-banner ${error ? 'error' : ''}`}>
+          <span style={{ fontSize: '20px' }}>📍</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: '600', fontSize: '14px' }}>{error || 'Enable location'}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              {error ? 'Tap to try again' : 'Find venues near you'}
+            </div>
+          </div>
+          <button className="btn btn-primary btn-sm location-btn" onClick={requestLocation} disabled={loading}>
+            {loading ? '...' : 'Enable'}
+          </button>
+        </div>
+      );
+    }
+
+    function VenueCard({ venue, onClick }) {
+      const getLitnessColor = (score) => score >= 4 ? 'litness-fire' : 'litness-hot';
+      const getCrowdClass = (level) => ({ quiet: 'crowd-low', moderate: 'crowd-moderate', busy: 'crowd-busy', packed: 'crowd-packed' }[level] || 'crowd-low');
+      return (
+        <div className="venue-card" onClick={() => onClick(venue)}>
+          <div className="venue-image-container"><img className="venue-image" src={venue.hero_image_url || 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=600'} alt={venue.name} /><div className="venue-badges">{venue.is_featured && <span className="venue-badge badge-featured">🔥 Featured</span>}{venue.cover_price === 0 && <span className="venue-badge badge-free">Free Entry</span>}</div>{venue.live_data && <div className="venue-litness"><span className={getLitnessColor(venue.live_data.litness_score)}>🔥 {venue.live_data.litness_score?.toFixed(1) || '0.0'}</span></div>}</div>
+          <div className="venue-info"><div className="venue-header"><h3 className="venue-name">{venue.name}</h3><span className="venue-cover">{venue.cover_price > 0 ? `$${venue.cover_price}` : 'Free'}</span></div><div className="venue-meta"><span className="venue-meta-item">📍 {venue.distance_miles != null ? `${venue.distance_miles.toFixed(1)} mi` : 'Nearby'}</span><span className="venue-meta-item">{venue.age_requirement}</span>{venue.live_data?.checked_in_count > 0 && <span className="venue-meta-item">👥 {venue.live_data.checked_in_count} here</span>}</div><div className="venue-genres">{venue.genres?.slice(0, 3).map(g => <span key={g} className="genre-tag">{g}</span>)}</div>{venue.live_data && <div className="venue-live-bar"><div className="live-indicator"><span className="live-dot"></span><span style={{ fontSize: '13px', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{venue.live_data.crowd_level}</span></div><div className="crowd-meter"><div className="crowd-bar"><div className={`crowd-fill ${getCrowdClass(venue.live_data.crowd_level)}`} style={{ width: `${venue.live_data.crowd_percentage}%` }} /></div><span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{venue.live_data.crowd_percentage}%</span></div></div>}</div>
+        </div>
+      );
+    }
+
+    function EventCard({ event }) {
+      const date = new Date(event.starts_at);
+      return (<div className="event-card"><div className="event-date-box"><div className="event-date-day">{date.getDate()}</div><div className="event-date-month">{date.toLocaleDateString('en-US', { month: 'short' })}</div></div><div className="event-details"><div className="event-name">{event.name}</div><div className="event-venue">{event.venue?.name}</div><div className="event-meta"><span>🕐 {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span><span className="event-price">{event.is_free ? 'Free' : `$${event.price?.general || 0}`}</span><span>👥 {event.attending_count} going</span></div></div></div>);
+    }
+
+    function VibePost({ post, onReact }) {
+      const formatTime = (d) => { const mins = Math.floor((Date.now() - new Date(d)) / 60000); return mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`; };
+      return (<div className="vibe-post"><div className="vibe-header"><div className="avatar">{post.user?.name?.charAt(0) || '?'}</div><div className="vibe-user-info"><div className="vibe-username">{post.user?.name}</div>{post.venue && <div className="vibe-location">📍 {post.venue.name}</div>}</div><div className="vibe-time">{formatTime(post.created_at)}</div></div><div className="vibe-content">{post.content}</div><div className="vibe-actions"><button className={`vibe-action ${post.reactions?.user_reacted ? 'active' : ''}`} onClick={() => onReact(post.id)}>🔥 {post.reactions?.fire || 0}</button><button className="vibe-action">💬 {post.comment_count || 0}</button><button className="vibe-action">📤 Share</button></div></div>);
+    }
+
+    function LoginScreen({ onLogin, onSwitchToRegister }) {
+      const toast = useToast();
+      const [email, setEmail] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+      const handleLogin = async () => {
+        if (!email || !password) { toast.error('Please fill in all fields'); return; }
+        setLoading(true);
+        try { const user = await api.login(email, password); onLogin(user); toast.success('Welcome back! 🔥'); } catch (err) { toast.error(err.message || 'Login failed'); } finally { setLoading(false); }
+      };
+      return (<div className="auth-screen"><h1 className="auth-logo">GitLit</h1><p className="auth-tagline">Your nightlife, elevated.</p><div className="auth-form"><div className="form-group"><label className="form-label">Email</label><input type="email" className="form-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div><div className="form-group"><label className="form-label">Password</label><input type="password" className="form-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} /></div><button className="btn btn-primary btn-full" style={{ padding: '16px', fontSize: '16px' }} onClick={handleLogin} disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button></div><div className="auth-footer">Don't have an account? <span className="auth-link" onClick={onSwitchToRegister}>Sign up</span></div></div>);
+    }
+
+    function RegisterScreen({ onRegister, onSwitchToLogin }) {
+      const toast = useToast();
+      const [name, setName] = React.useState('');
+      const [email, setEmail] = React.useState('');
+      const [handle, setHandle] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+      const handleRegister = async () => {
+        if (!name || !email || !handle || !password) { toast.error('Please fill in all fields'); return; }
+        if (password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+        setLoading(true);
+        try { const user = await api.register(email, password, name, handle.toLowerCase().replace(/[^a-z0-9]/g, '')); onRegister(user); toast.success('Welcome to GitLit! 🎉'); } catch (err) { toast.error(err.message || 'Registration failed'); } finally { setLoading(false); }
+      };
+      return (<div className="auth-screen"><h1 className="auth-logo">GitLit</h1><p className="auth-tagline">Join the party.</p><div className="auth-form"><div className="form-group"><label className="form-label">Your Name</label><input type="text" className="form-input" placeholder="What should we call you?" value={name} onChange={(e) => setName(e.target.value)} /></div><div className="form-group"><label className="form-label">Email</label><input type="email" className="form-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div><div className="form-group"><label className="form-label">Username</label><input type="text" className="form-input" placeholder="yourname (no spaces)" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))} /></div><div className="form-group"><label className="form-label">Password</label><input type="password" className="form-input" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} /></div><button className="btn btn-primary btn-full" style={{ padding: '16px', fontSize: '16px' }} onClick={handleRegister} disabled={loading}>{loading ? 'Creating account...' : 'Create Account'}</button></div><div className="auth-footer">Already have an account? <span className="auth-link" onClick={onSwitchToLogin}>Sign in</span></div></div>);
+    }
+
+    function DiscoverScreen({ onVenueSelect }) {
+      const toast = useToast();
+      const { location } = useLocation();
+      const [venues, setVenues] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [search, setSearch] = React.useState('');
+      const [mood, setMood] = React.useState(null);
+      const [genre, setGenre] = React.useState('all');
+      const moods = [{ id: 'turnt', emoji: '🔥', label: 'Turnt', desc: 'High energy vibes' }, { id: 'chill', emoji: '🌙', label: 'Chill', desc: 'Laid back night' }, { id: 'date', emoji: '💕', label: 'Date Night', desc: 'Romantic spots' }, { id: 'crew', emoji: '👥', label: 'Crew Outing', desc: 'Group friendly' }];
+      const genres = [{ id: 'all', label: 'All' }, { id: 'hip_hop', label: 'Hip Hop' }, { id: 'afrobeats', label: 'Afrobeats' }, { id: 'edm', label: 'EDM' }, { id: 'latin', label: 'Latin' }];
+      
+      React.useEffect(() => { loadVenues(); }, [genre, location]);
+      
+      const loadVenues = async () => { 
+        setLoading(true); 
+        try { 
+          const params = { radius_miles: 50 };
+          // Use real location if available, otherwise default to DC area
+          if (location) {
+            params.lat = location.lat;
+            params.lng = location.lng;
+          } else {
+            params.lat = 38.9;
+            params.lng = -77.0;
+          }
+          if (genre !== 'all') params.genres = genre; 
+          const data = await api.getVenues(params); 
+          setVenues(data.venues || []); 
+        } catch (err) { 
+          toast.error('Failed to load venues'); 
+        } finally { 
+          setLoading(false); 
+        } 
+      };
+      
+      const filteredVenues = venues.filter(v => { if (search && !v.name.toLowerCase().includes(search.toLowerCase())) return false; return true; });
+      
+      return (
+        <div className="screen">
+          <div className="screen-content">
+            <LocationBanner />
+            <div className="search-container"><span className="search-icon">🔍</span><input type="text" className="search-input" placeholder="Search venues, music, vibes..." value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+            {!mood && <div className="section"><h3 className="section-title" style={{ marginBottom: '16px' }}>What's your vibe tonight?</h3><div className="mood-selector">{moods.map(m => <div key={m.id} className={`mood-card ${mood === m.id ? 'selected' : ''}`} onClick={() => setMood(m.id)}><div className="mood-emoji">{m.emoji}</div><div className="mood-label">{m.label}</div><div className="mood-desc">{m.desc}</div></div>)}</div></div>}
+            <div className="filter-row">{genres.map(g => <button key={g.id} className={`filter-chip ${genre === g.id ? 'active' : ''}`} onClick={() => setGenre(g.id)}>{g.label}</button>)}</div>
+            <div className="section">
+              <div className="section-header"><h3 className="section-title">{mood ? `${moods.find(m => m.id === mood)?.label} Spots` : '🔥 Hot Right Now'}</h3>{mood && <span className="section-link" onClick={() => setMood(null)}>Clear</span>}</div>
+              {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading venues...</div> : filteredVenues.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No venues found</div> : filteredVenues.map(v => <VenueCard key={v.id} venue={v} onClick={onVenueSelect} />)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function EventsScreen() {
+      const toast = useToast();
+      const [events, setEvents] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [dateFilter, setDateFilter] = React.useState('this_week');
+      const dateFilters = [{ id: 'today', label: 'Today' }, { id: 'tomorrow', label: 'Tomorrow' }, { id: 'this_week', label: 'This Week' }, { id: 'this_month', label: 'This Month' }];
+      React.useEffect(() => { loadEvents(); }, [dateFilter]);
+      const loadEvents = async () => { setLoading(true); try { const data = await api.getEvents({ date_range: dateFilter }); setEvents(data.events || []); } catch (err) { toast.error('Failed to load events'); } finally { setLoading(false); } };
+      return (<div className="screen"><div className="screen-content"><h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px' }}>Upcoming Events</h2><div className="filter-row">{dateFilters.map(f => <button key={f.id} className={`filter-chip ${dateFilter === f.id ? 'active' : ''}`} onClick={() => setDateFilter(f.id)}>{f.label}</button>)}</div>{loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading events...</div> : events.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No events found</div> : events.map(e => <EventCard key={e.id} event={e} />)}</div></div>);
+    }
+
+    function MapScreen() { 
+      const { location, requestLocation } = useLocation();
+      return (
+        <div className="screen">
+          <div className="screen-content">
+            <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px' }}>Explore Map</h2>
+            <div style={{ height: '400px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px', padding: '24px', textAlign: 'center' }}>
+              <span style={{ fontSize: '64px' }}>🗺️</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Interactive map coming soon</span>
+              {location && (
+                <div style={{ marginTop: '12px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  📍 Your location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ); 
+    }
+
+    function VibesScreen() {
+      const toast = useToast();
+      const [posts, setPosts] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [newPost, setNewPost] = React.useState('');
+      const [posting, setPosting] = React.useState(false);
+      const [filter, setFilter] = React.useState('all');
+      const filters = [{ id: 'all', label: 'All' }, { id: 'friends', label: 'Friends' }, { id: 'trending', label: '🔥 Trending' }];
+      React.useEffect(() => { loadFeed(); }, [filter]);
+      const loadFeed = async () => { setLoading(true); try { const data = await api.getFeed(); setPosts(data.posts || []); } catch (err) { toast.error('Failed to load feed'); } finally { setLoading(false); } };
+      const handleReact = async (postId) => { try { const result = await api.reactToPost(postId); setPosts(posts.map(p => p.id === postId ? { ...p, reactions: { ...p.reactions, fire: result.count, user_reacted: result.reacted } } : p)); } catch {} };
+      const handlePost = async () => { if (!newPost.trim()) return; setPosting(true); try { const post = await api.createPost(newPost); setPosts([post, ...posts]); setNewPost(''); toast.success('Posted! 🔥'); } catch (err) { toast.error('Failed to post'); } finally { setPosting(false); } };
+      return (<div className="screen"><div className="screen-content"><h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px' }}>Vibe Feed</h2><div className="vibe-post" style={{ marginBottom: '16px' }}><textarea className="form-input" placeholder="What's the vibe tonight? 🔥" value={newPost} onChange={(e) => setNewPost(e.target.value)} rows={3} style={{ resize: 'none', marginBottom: '12px' }} /><button className="btn btn-primary btn-sm" onClick={handlePost} disabled={posting || !newPost.trim()}>{posting ? 'Posting...' : 'Post'}</button></div><div className="filter-row">{filters.map(f => <button key={f.id} className={`filter-chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>)}</div>{loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading vibes...</div> : posts.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No posts yet - be the first!</div> : posts.map(p => <VibePost key={p.id} post={p} onReact={handleReact} />)}</div></div>);
+    }
+
+    function RemindersScreen() {
+      const [reminders, setReminders] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      React.useEffect(() => { loadReminders(); }, []);
+      const loadReminders = async () => { setLoading(true); try { const data = await api.getReminders(); setReminders(data.reminders || []); } catch {} finally { setLoading(false); } };
+      return (<div className="screen"><div className="screen-content"><h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px' }}>My Reminders</h2>{loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading...</div> : reminders.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No reminders yet</div> : reminders.map(r => (<div key={r.id} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '12px' }}><div style={{ fontWeight: '600' }}>{r.event?.name || 'Reminder'}</div><div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(r.remind_at).toLocaleString()}</div></div>))}</div></div>);
+    }
+
+    function ProfileScreen({ user, onClose, onLogout }) {
+      const toast = useToast();
+      const { location } = useLocation();
+      const handleLogout = () => { api.clearToken(); onLogout(); toast.info('Logged out!'); };
+      return (<div className="screen"><div className="screen-content"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}><h2 style={{ fontSize: '24px', fontWeight: '700' }}>Profile</h2><button className="btn btn-ghost" onClick={onClose}>✕</button></div><div className="profile-header"><div className="profile-avatar">{user.name?.charAt(0) || '?'}</div><h3 className="profile-name">{user.name}</h3><p className="profile-handle">@{user.handle}</p><div className="profile-stats"><div className="profile-stat"><div className="profile-stat-value">{user.stats?.nights_out || 0}</div><div className="profile-stat-label">Nights Out</div></div><div className="profile-stat"><div className="profile-stat-value">{user.stats?.friends_count || 0}</div><div className="profile-stat-label">Friends</div></div><div className="profile-stat"><div className="profile-stat-value">{user.stats?.reviews_count || 0}</div><div className="profile-stat-label">Reviews</div></div></div>{user.badges?.length > 0 && <div className="profile-badges">{user.badges.map(b => <span key={b.id} className="profile-badge">{b.icon} {b.name}</span>)}</div>}</div>{location && <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', padding: '12px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-secondary)' }}>📍 Location enabled: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}</div>}<div className="flex flex-col gap-3 mt-4"><button className="btn btn-secondary btn-full">⚙️ Settings</button><button className="btn btn-secondary btn-full">👥 Friends</button><button className="btn btn-secondary btn-full">🏆 Achievements</button><button className="btn btn-ghost btn-full" style={{ color: 'var(--danger)' }} onClick={handleLogout}>Sign Out</button></div></div></div>);
+    }
+
+    function VenueDetailScreen({ venue, onClose }) {
+      const toast = useToast();
+      const [checkedIn, setCheckedIn] = React.useState(false);
+      const [newComment, setNewComment] = React.useState('');
+      const [comments, setComments] = React.useState([]);
+      const [loading, setLoading] = React.useState(false);
+      React.useEffect(() => { loadComments(); }, [venue.id]);
+      const loadComments = async () => { try { const data = await api.getComments(venue.id); setComments(data.comments || []); } catch {} };
+      const handleCheckin = async () => { setLoading(true); try { if (checkedIn) { await api.checkout(venue.id); setCheckedIn(false); toast.success('Checked out!'); } else { await api.checkin(venue.id); setCheckedIn(true); toast.success(`Checked in to ${venue.name}! 🔥`); } } catch (err) { toast.error(err.message || 'Failed'); } finally { setLoading(false); } };
+      const handleComment = async () => { if (!newComment.trim()) return; try { const comment = await api.postComment(venue.id, newComment); setComments([comment, ...comments]); setNewComment(''); toast.success('Comment posted!'); } catch (err) { toast.error('Failed to post comment'); } };
+      const formatTime = (d) => { const mins = Math.floor((Date.now() - new Date(d)) / 60000); return mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`; };
+      return (<div className="screen" style={{ background: 'var(--bg-primary)' }}><div className="detail-header"><img className="detail-header-bg" src={venue.hero_image_url || 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=800'} alt="" /><button className="detail-back" onClick={onClose}>←</button></div><div className="detail-content"><div className="detail-card"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}><div><h2 className="detail-title">{venue.name}</h2><p className="detail-subtitle">{venue.address?.street} • {venue.age_requirement}</p></div>{venue.live_data && <div className="litness-display" style={{ minWidth: '90px' }}><div className="litness-score">🔥 {venue.live_data.litness_score?.toFixed(1) || '0.0'}</div><div className="litness-label">Litness</div></div>}</div><div className="venue-meta mb-4"><span className="venue-meta-item">💵 {venue.cover_price > 0 ? `$${venue.cover_price} cover` : 'Free entry'}</span><span className="venue-meta-item">👥 {venue.live_data?.checked_in_count || 0} here now</span>{venue.distance_miles != null && <span className="venue-meta-item">📍 {venue.distance_miles.toFixed(1)} mi away</span>}</div><div className="venue-genres mb-4">{venue.genres?.map(g => <span key={g} className="genre-tag">{g}</span>)}</div><button className={`btn btn-full checkin-btn ${checkedIn ? 'checked-in' : 'btn-primary'}`} onClick={handleCheckin} disabled={loading}>{loading ? '...' : (checkedIn ? '✓ Checked In' : 'Check In 🔥')}</button></div><div className="comments-section"><h3 className="comments-title">Live Updates</h3><div className="comment-input-row"><input type="text" className="form-input" placeholder="What's the vibe like?" value={newComment} onChange={(e) => setNewComment(e.target.value)} /><button className="btn btn-primary" onClick={handleComment}>Post</button></div>{comments.length === 0 ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>No updates yet - be the first!</div> : comments.map(c => (<div key={c.id} className="comment"><div className="comment-avatar">{c.user?.name?.charAt(0) || '?'}</div><div className="comment-body"><div><span className="comment-author">{c.user?.name}</span><span className="comment-time">{formatTime(c.created_at)}</span>{c.is_verified_checkin && <span className="comment-verified">✓ Verified</span>}</div><p className="comment-text">{c.content}</p></div></div>))}</div></div></div>);
+    }
+
+    function App() {
+      const toast = useToast();
+      const [user, setUser] = React.useState(null);
+      const [loading, setLoading] = React.useState(true);
+      const [authScreen, setAuthScreen] = React.useState('login');
+      const [activeTab, setActiveTab] = React.useState('discover');
+      const [showProfile, setShowProfile] = React.useState(false);
+      const [selectedVenue, setSelectedVenue] = React.useState(null);
+      React.useEffect(() => { const checkAuth = async () => { if (api.token) { try { const userData = await api.getMe(); setUser(userData); } catch { api.clearToken(); } } setLoading(false); }; checkAuth(); }, []);
+      const handleLogin = (userData) => { setUser(userData); };
+      const handleLogout = () => { setUser(null); setShowProfile(false); setAuthScreen('login'); };
+      if (loading) { return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: '16px' }}><div className="auth-logo" style={{ fontSize: '36px' }}>GitLit</div><div style={{ color: 'var(--text-muted)' }}>Loading...</div></div>; }
+      if (!user) { if (authScreen === 'register') { return <RegisterScreen onRegister={handleLogin} onSwitchToLogin={() => setAuthScreen('login')} />; } return <LoginScreen onLogin={handleLogin} onSwitchToRegister={() => setAuthScreen('register')} />; }
+      if (selectedVenue) return <VenueDetailScreen venue={selectedVenue} onClose={() => setSelectedVenue(null)} />;
+      if (showProfile) return <ProfileScreen user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} />;
+      return (<div className="app-container"><Header onProfile={() => setShowProfile(true)} />{activeTab === 'discover' && <DiscoverScreen onVenueSelect={setSelectedVenue} />}{activeTab === 'events' && <EventsScreen />}{activeTab === 'map' && <MapScreen />}{activeTab === 'vibes' && <VibesScreen />}{activeTab === 'reminders' && <RemindersScreen />}<NavBar activeTab={activeTab} onTabChange={setActiveTab} /></div>);
+    }
+
+    function AppWrapper() {
+      return (
+        <ToastProvider>
+          <LocationProvider>
+            <App />
+          </LocationProvider>
+        </ToastProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<AppWrapper />);
+  </script>
+</body>
+</html>
